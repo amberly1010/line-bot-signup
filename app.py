@@ -6,6 +6,24 @@ import re
 
 app = Flask(__name__)
 
+from flask import Flask, request
+
+app = Flask(__name__)
+
+# 根目錄路由，Render 部署時可以確認服務是否運行
+@app.route("/", methods=["GET"])
+def home():
+    return "Line Bot Signup is Running!"
+
+# LINE Webhook 接收請求
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.json
+    print("Received Data:", data)  # 這行可以幫助偵錯，查看接收到的資料
+    return "OK", 200
+
+
+
 # 設定你的 LINE Bot Channel Access Token 和 Channel Secret
 LINE_BOT_API = "2006843879"
 HANDLER = "8d141f11e043c01c163ad2ce10cd09f5"
@@ -67,4 +85,6 @@ def handle_message(event):
             return
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    import os
+    port = int(os.environ.get("PORT", 5000))  # Render 會自動設定 PORT 環境變數
+    app.run(host="0.0.0.0", port=port)
