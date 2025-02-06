@@ -56,9 +56,9 @@ def handle_message(event):
         print(f"📩 Received Message: {user_message} from User: {user_id}")  # 🔍 記錄收到的訊息
         
         response_text = process_message(user_message, user_id)
-        print(f"🤖 Response: {response_text}")  # 🔍 記錄處理後的回應
         
         if response_text:
+            print(f"🤖 Response: {response_text}")  # 🔍 記錄處理後的回應
             reply_message(event.reply_token, response_text)
             print("✅ Message Sent Successfully")  # 🔍 記錄成功發送
         else:
@@ -75,7 +75,7 @@ def process_message(user_message, user_id):
         if activity_name in activities:
             print(f"⚠️ 活動 '{activity_name}' 已存在，跳過新增")
             return f"活動 '{activity_name}' 已存在！"
-
+        
         activities[activity_name] = []
         print(f"✅ 活動 '{activity_name}' 已建立！")  # 紀錄新增活動
         return f"活動 '{activity_name}' 已新增，開始接受報名！"
