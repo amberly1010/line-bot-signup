@@ -32,7 +32,6 @@ def callback():
     print("Webhook Received:", body)  # 🔍 確認 Webhook 收到的內容
     print("X-Line-Signature:", signature)  # 🔍 確認是否有收到 Signature
 
-    # 🔹 檢查 signature 是否為 None，允許測試
     if signature is None:
         print("🚨 WARNING: X-Line-Signature is missing! This request is likely from a manual test.")  # 記錄警告
         return jsonify({"warning": "X-Line-Signature is missing. Manual test detected."}), 200
@@ -45,29 +44,28 @@ def callback():
 
     return "OK"
 
-@handler.add(MessageEvent)
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     print("🚀 handle_message() 被觸發!")  # 確保這個函數有被執行
     
-    if isinstance(event.message, TextMessage):
-        user_message = event.message.text.strip()
-        user_id = event.source.user_id
-        
-        print(f"📩 Received Message: {user_message} from User: {user_id}")  # 🔍 記錄收到的訊息
-        
-        response_text = process_message(user_message, user_id)
-        
-        if response_text:
-            print(f"🤖 Response: {response_text}")  # 🔍 記錄處理後的回應
-            reply_message(event.reply_token, response_text)
-            print("✅ Message Sent Successfully")  # 🔍 記錄成功發送
-        else:
-            print("🚨 ERROR: `process_message()` 回傳了空內容，可能發生錯誤")
+    user_message = event.message.text.strip()
+    user_id = event.source.user_id
+    reply_token = event.reply_token  # 取得 replyToken
+    
+    print(f"📩 Received Message: {user_message} from User: {user_id}")  # 記錄收到的訊息
+
+    response_text = process_message(user_message, user_id)
+
+    if response_text:
+        print(f"🤖 Response: {response_text}")  # 記錄回應內容
+        reply_message(reply_token, response_text)
+        print("✅ Message Sent Successfully")  # 確認訊息已回傳
+    else:
+        print("🚨 ERROR: `process_message()` 回傳了空內容，可能發生錯誤")
 
 def process_message(user_message, user_id):
     global activities
-
-    print(f"🔍 `process_message()` 被執行: {user_message}")  # 確保函數被執行
+    print(f"🔍 `process_message()` 被執行: {user_message}")  # 記錄訊息內容
     
     if user_message.startswith("新增+"):
         activity_name = user_message.replace("新增+", "").strip()
@@ -77,20 +75,20 @@ def process_message(user_message, user_id):
             return f"活動 '{activity_name}' 已存在！"
         
         activities[activity_name] = []
-        print(f"✅ 活動 '{activity_name}' 已建立！")  # 紀錄新增活動
+        print(f"✅ 活動 '{activity_name}' 已建立！")  # 記錄活動成功新增
         return f"活動 '{activity_name}' 已新增，開始接受報名！"
     
     print("🚨 ERROR: `process_message()` 解析訊息時發生問題")
     return "指令無效，請確認格式！"
 
 def reply_message(reply_token, text):
-    print(f"🔄 Sending Reply: {text}")  # 🔍 記錄機器人的回應
+    print(f"🔄 Sending Reply: {text}")  # 記錄機器人回應
     try:
         message = ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=text)])
         line_bot_api.reply_message(message)
-        print("✅ Message Sent to LINE Successfully")  # 🔍 確認回應已發送
+        print("✅ Message Sent to LINE Successfully")  # 確認回應成功發送
     except Exception as e:
-        print(f"🚨 ERROR SENDING MESSAGE: {str(e)}")  # 🔍 記錄錯誤
+        print(f"🚨 ERROR SENDING MESSAGE: {str(e)}")  # 記錄錯誤
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
