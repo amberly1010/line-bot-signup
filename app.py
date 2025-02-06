@@ -40,20 +40,23 @@ def callback():
     try:
         handler.handle(body, signature)
     except Exception as e:
+        print(f"🚨 ERROR HANDLING MESSAGE: {str(e)}")  # 記錄錯誤
         return jsonify({"error": str(e)}), 400
 
     return "OK"
 
 @handler.add(MessageEvent)
 def handle_message(event):
+    print("🚀 handle_message() 被觸發!")  # 確保這個函數有被執行
+    
     if isinstance(event.message, TextMessage):
         user_message = event.message.text.strip()
         user_id = event.source.user_id
         
-        print(f"📩 Received Message: {user_message} from User: {user_id}")  # 🔍 記錄訊息
+        print(f"📩 Received Message: {user_message} from User: {user_id}")  # 🔍 記錄收到的訊息
         
         response_text = process_message(user_message, user_id)
-        print(f"🤖 Response: {response_text}")  # 🔍 記錄回應內容
+        print(f"🤖 Response: {response_text}")  # 🔍 記錄處理後的回應
         
         reply_message(event.reply_token, response_text)
         print("✅ Message Sent Successfully")  # 🔍 記錄成功發送
