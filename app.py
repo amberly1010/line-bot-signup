@@ -71,10 +71,16 @@ def process_message(user_message, user_id):
     
     if user_message.startswith("新增+"):
         activity_name = user_message.replace("新增+", "").strip()
+        
+        if activity_name in activities:
+            print(f"⚠️ 活動 '{activity_name}' 已存在，跳過新增")
+            return f"活動 '{activity_name}' 已存在！"
+
         activities[activity_name] = []
         print(f"✅ 活動 '{activity_name}' 已建立！")  # 紀錄新增活動
         return f"活動 '{activity_name}' 已新增，開始接受報名！"
     
+    print("🚨 ERROR: `process_message()` 解析訊息時發生問題")
     return "指令無效，請確認格式！"
 
 def reply_message(reply_token, text):
