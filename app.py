@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from linebot.v3.messaging import MessagingApi, ReplyMessageRequest, TextMessage
-from linebot.v3.webhook import WebhookHandler
+from linebot.v3.webhook import WebhookHandler, MessageEvent
 import os
 
 app = Flask(__name__)
@@ -32,7 +32,7 @@ def callback():
     
     return "OK"
 
-@handler.add("message")
+@handler.add(MessageEvent)  # ✅ 改成 MessageEvent
 def handle_message(event):
     if isinstance(event.message, TextMessage):
         user_message = event.message.text.strip()
