@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from linebot.v3.messaging import MessagingApi, ReplyMessageRequest, TextMessage
-from linebot.v3.webhook import WebhookHandler, MessageEvent, TextMessageContent
+from linebot.v3.webhook import WebhookHandler, MessageEvent, TextMessageEvent
 import os
 
 app = Flask(__name__)
@@ -45,7 +45,7 @@ def callback():
 
     return "OK"
 
-@handler.add(MessageEvent, message=TextMessageContent)
+@handler.add(MessageEvent, message=TextMessageEvent)
 def handle_message(event):
     print("🚀 handle_message() 被觸發!")  # 確保這個函數有被執行
     
