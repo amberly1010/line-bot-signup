@@ -32,21 +32,20 @@ def callback():
     print("Webhook Received:", body)  # 🔍 確認 Webhook 收到的內容
     print("X-Line-Signature:", signature)  # 🔍 確認是否有收到 Signature
 
+    # 🔹 檢查 signature 是否為 None，允許測試
     if signature is None:
-        print("🚨 WARNING: X-Line-Signature is missing! This request is likely from a manual test.")
+        print("🚨 WARNING: X-Line-Signature is missing! This request is likely from a manual test.")  # 記錄警告
         return jsonify({"warning": "X-Line-Signature is missing. Manual test detected."}), 200
 
     try:
-        print("⚙️ 嘗試處理 Webhook 事件...")
         handler.handle(body, signature)
-        print("✅ Webhook 事件處理成功!")
     except Exception as e:
-        print(f"🚨 ERROR IN handler.handle(): {str(e)}")
+        print(f"🚨 ERROR HANDLING MESSAGE: {str(e)}")  # 記錄錯誤
         return jsonify({"error": str(e)}), 400
 
     return "OK"
 
-@handler.add(MessageEvent, message=TextMessage)
+@handler.add(MessageEvent)
 def handle_message(event):
     print("🚀 handle_message() 被觸發!")  # 確保這個函數有被執行
     
@@ -94,5 +93,4 @@ def reply_message(reply_token, text):
         print(f"🚨 ERROR SENDING MESSAGE: {str(e)}")  # 🔍 記錄錯誤
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=10000)
