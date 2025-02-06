@@ -11,8 +11,8 @@ LINE_CHANNEL_ACCESS_TOKEN = os.getenv("2006843879")
 LINE_CHANNEL_SECRET = os.getenv("8d141f11e043c01c163ad2ce10cd09f5")
 
 # 建立 API 客戶端
-line_bot_api = MessagingApi(2006843879)
-handler = WebhookHandler(8d141f11e043c01c163ad2ce10cd09f5)
+line_bot_api = MessagingApi("2006843879")
+handler = WebhookHandler("8d141f11e043c01c163ad2ce10cd09f5")
 
 # 活動報名資料結構
 activities = {}
