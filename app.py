@@ -32,10 +32,10 @@ def callback():
     print("Webhook Received:", body)  # 🔍 確認 Webhook 收到的內容
     print("X-Line-Signature:", signature)  # 🔍 確認是否有收到 Signature
 
-    # 🔹 檢查 signature 是否為 None
+    # 🔹 檢查 signature 是否為 None，允許測試
     if signature is None:
-        print("🚨 ERROR: X-Line-Signature is None!")  # 記錄錯誤
-        return jsonify({"error": "X-Line-Signature is missing"}), 400
+        print("🚨 WARNING: X-Line-Signature is missing! This request is likely from a manual test.")  # 記錄警告
+        return jsonify({"warning": "X-Line-Signature is missing. Manual test detected."}), 200
 
     try:
         handler.handle(body, signature)
