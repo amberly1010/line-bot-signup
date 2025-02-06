@@ -56,6 +56,7 @@ def handle_message(event):
         print(f"🤖 Response: {response_text}")  # 🔍 記錄回應內容
         
         reply_message(event.reply_token, response_text)
+        print("✅ Message Sent Successfully")  # 🔍 記錄成功發送
 
 def process_message(user_message, user_id):
     global activities
@@ -99,8 +100,12 @@ def process_message(user_message, user_id):
 
 def reply_message(reply_token, text):
     print(f"🔄 Sending Reply: {text}")  # 🔍 記錄機器人的回應
-    message = ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=text)])
-    line_bot_api.reply_message(message)
+    try:
+        message = ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=text)])
+        line_bot_api.reply_message(message)
+        print("✅ Message Sent to LINE Successfully")  # 🔍 確認回應已發送
+    except Exception as e:
+        print(f"🚨 ERROR SENDING MESSAGE: {str(e)}")  # 🔍 記錄錯誤
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
