@@ -50,7 +50,11 @@ def handle_message(event):
         user_message = event.message.text.strip()
         user_id = event.source.user_id
         
+        print(f"📩 Received Message: {user_message} from User: {user_id}")  # 🔍 記錄訊息
+        
         response_text = process_message(user_message, user_id)
+        print(f"🤖 Response: {response_text}")  # 🔍 記錄回應內容
+        
         reply_message(event.reply_token, response_text)
 
 def process_message(user_message, user_id):
@@ -94,6 +98,7 @@ def process_message(user_message, user_id):
     return "指令無效，請確認格式！"
 
 def reply_message(reply_token, text):
+    print(f"🔄 Sending Reply: {text}")  # 🔍 記錄機器人的回應
     message = ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=text)])
     line_bot_api.reply_message(message)
 
