@@ -1,18 +1,17 @@
 from flask import Flask, request, jsonify
-from linebot.v3 import WebhookHandler
 from linebot.v3.messaging import MessagingApi, ReplyMessageRequest, TextMessage
-from linebot.v3.webhook import CallbackRequest
+from linebot.v3.webhook import WebhookHandler
 import os
 
 app = Flask(__name__)
 
 # 設定 LINE API 金鑰
-LINE_CHANNEL_ACCESS_TOKEN = os.getenv("2006843879")
-LINE_CHANNEL_SECRET = os.getenv("8d141f11e043c01c163ad2ce10cd09f5")
+LINE_CHANNEL_ACCESS_TOKEN = "2006843879"
+LINE_CHANNEL_SECRET = "8d141f11e043c01c163ad2ce10cd09f5"
 
 # 建立 API 客戶端
-line_bot_api = MessagingApi("2006843879")
-handler = WebhookHandler("8d141f11e043c01c163ad2ce10cd09f5")
+line_bot_api = MessagingApi(LINE_CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # 活動報名資料結構
 activities = {}
