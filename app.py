@@ -58,46 +58,22 @@ def handle_message(event):
         response_text = process_message(user_message, user_id)
         print(f"🤖 Response: {response_text}")  # 🔍 記錄處理後的回應
         
-        reply_message(event.reply_token, response_text)
-        print("✅ Message Sent Successfully")  # 🔍 記錄成功發送
+        if response_text:
+            reply_message(event.reply_token, response_text)
+            print("✅ Message Sent Successfully")  # 🔍 記錄成功發送
+        else:
+            print("🚨 ERROR: `process_message()` 回傳了空內容，可能發生錯誤")
 
 def process_message(user_message, user_id):
     global activities
+
+    print(f"🔍 `process_message()` 被執行: {user_message}")  # 確保函數被執行
     
     if user_message.startswith("新增+"):
         activity_name = user_message.replace("新增+", "").strip()
         activities[activity_name] = []
+        print(f"✅ 活動 '{activity_name}' 已建立！")  # 紀錄新增活動
         return f"活動 '{activity_name}' 已新增，開始接受報名！"
-    
-    elif user_message.startswith("截止+"):
-        activity_name = user_message.replace("截止+", "").strip()
-        if activity_name in activities:
-            participant_list = "\n".join([f"{idx+1}. {p}" for idx, p in enumerate(activities[activity_name])])
-            return f"活動 '{activity_name}' 報名名單：\n{participant_list}"
-        return f"活動 '{activity_name}' 不存在或尚未有人報名。"
-    
-    elif user_message.startswith("取消+"):
-        parts = user_message.split("+")
-        if len(parts) == 3:
-            activity_name, name_to_remove = parts[1], parts[2]
-            if activity_name in activities and name_to_remove in activities[activity_name]:
-                activities[activity_name].remove(name_to_remove)
-                return f"{name_to_remove} 已從 '{activity_name}' 報名名單移除。"
-            return f"未找到 '{name_to_remove}' 在 '{activity_name}' 的報名紀錄。"
-    
-    elif user_message.startswith("刪除+"):
-        activity_name = user_message.replace("刪除+", "").strip()
-        if activity_name in activities:
-            del activities[activity_name]
-            return f"活動 '{activity_name}' 已刪除。"
-        return f"活動 '{activity_name}' 不存在。"
-    
-    else:
-        for activity_name in activities.keys():
-            if user_message.startswith(activity_name):
-                participants = user_message[len(activity_name):].strip().split()
-                activities[activity_name].extend(participants)
-                return f"成功報名 '{activity_name}': {', '.join(participants)}"
     
     return "指令無效，請確認格式！"
 
