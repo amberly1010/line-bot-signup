@@ -28,14 +28,20 @@ def home():
 def callback():
     signature = request.headers.get("X-Line-Signature")
     body = request.get_data(as_text=True)
-    
+
     print("Webhook Received:", body)  # 🔍 確認 Webhook 收到的內容
-    
+    print("X-Line-Signature:", signature)  # 🔍 確認是否有收到 Signature
+
+    # 🔹 檢查 signature 是否為 None
+    if signature is None:
+        print("🚨 ERROR: X-Line-Signature is None!")  # 記錄錯誤
+        return jsonify({"error": "X-Line-Signature is missing"}), 400
+
     try:
         handler.handle(body, signature)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-    
+
     return "OK"
 
 @handler.add(MessageEvent)
