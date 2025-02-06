@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from linebot.v3.messaging import MessagingApi, ReplyMessageRequest, TextMessage
-from linebot.v3.webhook import WebhookHandler
+from linebot.v3.webhook import WebhookHandler, MessageEvent
 import os
 
 app = Flask(__name__)
@@ -8,6 +8,10 @@ app = Flask(__name__)
 # 設定 LINE API 金鑰
 LINE_CHANNEL_ACCESS_TOKEN = "CeDYTudJGcmApZKWQ5aH6ZDF/bQfelCO8UQSNLM/BiLn9QzGX4P+8Bn0piCtxZose0uqq+xaLp6yGPRe7cGjkOwHpI4D/US3oHCRk4ejqxLyCuTg/PuAKHQLk57j8aqGlzXwbYckznAxhJzeSWNE8QdB04t89/1O/w1cDnyilFU="
 LINE_CHANNEL_SECRET = "8d141f11e043c01c163ad2ce10cd09f5"
+
+# 檢查環境變數是否正確
+print(f"LINE_CHANNEL_ACCESS_TOKEN: {LINE_CHANNEL_ACCESS_TOKEN}")
+print(f"LINE_CHANNEL_SECRET: {LINE_CHANNEL_SECRET}")
 
 # 建立 API 客戶端
 line_bot_api = MessagingApi(LINE_CHANNEL_ACCESS_TOKEN)
@@ -25,6 +29,8 @@ def callback():
     signature = request.headers.get("X-Line-Signature")
     body = request.get_data(as_text=True)
     
+    print("Webhook Received:", body)  # 🔍 確認 Webhook 收到的內容
+    
     try:
         handler.handle(body, signature)
     except Exception as e:
@@ -32,7 +38,7 @@ def callback():
     
     return "OK"
 
-@handler.add("message")
+@handler.add(MessageEvent)
 def handle_message(event):
     if isinstance(event.message, TextMessage):
         user_message = event.message.text.strip()
