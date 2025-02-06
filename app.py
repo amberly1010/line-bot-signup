@@ -48,27 +48,27 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    print("🚀 handle_message() 被觸發!")
+    print("🚀 handle_message() 被觸發!")  # 確保這個函數有被執行
     
     if isinstance(event.message, TextMessage):
         user_message = event.message.text.strip()
         user_id = event.source.user_id
         
-        print(f"📩 Received Message: {user_message} from User: {user_id}")
+        print(f"📩 Received Message: {user_message} from User: {user_id}")  # 🔍 記錄收到的訊息
         
         response_text = process_message(user_message, user_id)
         
         if response_text:
-            print(f"🤖 Response: {response_text}")
+            print(f"🤖 Response: {response_text}")  # 🔍 記錄處理後的回應
             reply_message(event.reply_token, response_text)
-            print("✅ Message Sent Successfully")
+            print("✅ Message Sent Successfully")  # 🔍 記錄成功發送
         else:
             print("🚨 ERROR: `process_message()` 回傳了空內容，可能發生錯誤")
 
 def process_message(user_message, user_id):
     global activities
 
-    print(f"🔍 `process_message()` 被執行: {user_message}")
+    print(f"🔍 `process_message()` 被執行: {user_message}")  # 確保函數被執行
     
     if user_message.startswith("新增+"):
         activity_name = user_message.replace("新增+", "").strip()
@@ -78,20 +78,21 @@ def process_message(user_message, user_id):
             return f"活動 '{activity_name}' 已存在！"
         
         activities[activity_name] = []
-        print(f"✅ 活動 '{activity_name}' 已建立！")
+        print(f"✅ 活動 '{activity_name}' 已建立！")  # 紀錄新增活動
         return f"活動 '{activity_name}' 已新增，開始接受報名！"
     
     print("🚨 ERROR: `process_message()` 解析訊息時發生問題")
     return "指令無效，請確認格式！"
 
 def reply_message(reply_token, text):
-    print(f"🔄 Sending Reply: {text}")
+    print(f"🔄 Sending Reply: {text}")  # 🔍 記錄機器人的回應
     try:
         message = ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=text)])
         line_bot_api.reply_message(message)
-        print("✅ Message Sent to LINE Successfully")
+        print("✅ Message Sent to LINE Successfully")  # 🔍 確認回應已發送
     except Exception as e:
-        print(f"🚨 ERROR SENDING MESSAGE: {str(e)}")
+        print(f"🚨 ERROR SENDING MESSAGE: {str(e)}")  # 🔍 記錄錯誤
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
