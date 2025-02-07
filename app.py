@@ -103,6 +103,13 @@ def handle_message(event):
             participants = parse_registration(message[len(activity_name)+3:].strip())
             group = events[activity_name]['participants']
 
+            # 檢查重複報名
+            for participant in participants:
+                if participant[0] in group:
+                    existing_number = list(group.keys()).index(participant[0]) + 1
+                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"已重複報名 編號{existing_number} {participant[0]}"))
+                    return
+
             # 只擷取到最大人數，若超過則停止報名並提供名單
             for i, participant in enumerate(participants):
                 if len(group) >= events[activity_name]['max_participants']:
