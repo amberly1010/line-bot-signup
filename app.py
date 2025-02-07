@@ -62,7 +62,7 @@ def handle_message(event):
     
     if message.startswith('新增'):
         parts = message.split()
-        
+
         # 檢查訊息格式
         if len(parts) < 3:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：新增 活動名稱 人數 AJ/BJ"))
@@ -74,26 +74,23 @@ def handle_message(event):
 
         # 檢查活動名稱是否已存在
         if activity_name in events:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="該活動名稱已經存在，請選擇其他名稱。"))
-            return
-
-        # 提取最大人數
-        try:
-            max_participants = int(re.search(r'\d+', participants_limit).group())
-        except:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
-            return
-        
-        # 根據群組限制設置活動
-        if group_limit == 'AJ':
-            events[activity_name] = {'allowed_group': GROUP_A_ID, 'max_participants': max_participants, 'participants': {}}
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
-        elif group_limit == 'BJ':
-            events[activity_name] = {'allowed_group': GROUP_B_ID, 'max_participants': max_participants, 'participants': {}}
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
+            # 如果活動已存在，更新人數限制
+            try:
+                max_participants = int(re.search(r'\d+', participants_limit).group())
+                events[activity_name]['max_participants'] = max_participants
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已存在，已更新人數限制。"))
+            except:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
+                return
         else:
-            events[activity_name] = {'allowed_group': None, 'max_participants': max_participants, 'participants': {}}
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
+            # 如果活動不存在，創建新活動
+            try:
+                max_participants = int(re.search(r'\d+', participants_limit).group())
+                events[activity_name] = {'allowed_group': group_limit, 'max_participants': max_participants, 'participants': {}}
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
+            except:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
+                return
     
     elif message.startswith('報名'):
         activity_name = message[2:].split()[0]
@@ -101,19 +98,22 @@ def handle_message(event):
             allowed_group = events[activity_name].get('allowed_group')
             
             if allowed_group and group_id != allowed_group:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」僅允許指定群組參加！"))
                 return
 
             participants = parse_registration(message[len(activity_name)+3:].strip())
             group = events[activity_name]['participants']
 
-            # 只擷取到最大人數
+            # 只擷取到最大人數，若超過則停止報名並提供名單
             for i, participant in enumerate(participants):
                 if len(group) >= events[activity_name]['max_participants']:
                     break
                 group[participant[0]] = participant[1] if len(participant) > 1 else None
-
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"報名已處理，最多報名 {events[activity_name]['max_participants']} 人。"))
+            
+            if len(group) >= events[activity_name]['max_participants']:
+                participants_list = [f"{i+1}. {p[0]} ({p[1]})" if p[1] else f"{i+1}. {p[0]}" for i, p in enumerate(group)]
+                participants_list_str = "\n".join(participants_list)
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"報名已達到最大人數。截止名單如下：\n{participants_list_str}"))
+            
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
 
