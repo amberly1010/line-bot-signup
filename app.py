@@ -27,7 +27,7 @@ def parse_registration(text):
             participants.append((name, item))
     return participants
 
-# 設置 callback 路由來處理來自 LINE 的 Webhook 請求
+# 設置 callback 路由來處理來自 LINE 的 webhook 請求
 @app.route("/callback", methods=["POST"])
 def callback():
     signature = request.headers["X-Line-Signature"]
@@ -61,8 +61,9 @@ def handle_message(event):
     GROUP_B_ID = '其他群組B的group_id'  # 替換為群組2的 group_id (群組B)
     
     if message.startswith('新增'):
-        # 嘗試解析新增指令
         parts = message.split()
+
+        # 確保訊息格式正確
         if len(parts) < 3:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：新增 活動名稱 人數 AJ/BJ"))
             return
