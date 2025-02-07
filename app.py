@@ -33,10 +33,15 @@ def callback():
     signature = request.headers["X-Line-Signature"]
     body = request.get_data(as_text=True)
     
+    # 顯示簽名和請求體，方便調試
+    print(f"簽名: {signature}")  # 印出簽名
+    print(f"請求體: {body}")  # 印出請求的內容
+
     # 驗證 webhook 請求的簽名
     try:
         handler.handle(body, signature)
     except Exception as e:
+        print(f"處理錯誤: {str(e)}")  # 輸出錯誤信息
         abort(400)
     
     return 'OK'
@@ -48,7 +53,9 @@ def handle_message(event):
     # 獲取群組 ID
     if event.source.type == 'group':
         group_id = event.source.group_id
-        print(f"來自群組的訊息，群組 ID 是: {group_id}")  # 印出 group_id
+        # 控制是否顯示群組ID
+        # 如果需要顯示群組ID，取消註解以下行：
+        # print(f"來自群組的訊息，群組 ID 是: {group_id}")
     else:
         group_id = None
 
