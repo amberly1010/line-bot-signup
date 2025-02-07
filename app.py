@@ -1,10 +1,14 @@
-import os
-import re
 from flask import Flask, request, jsonify
+import re
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = Flask(__name__)
+
+# 設置基本的根路徑
+@app.route('/')
+def home():
+    return "LINE Bot is running!"
 
 # LINE Bot API 設定
 LINE_CHANNEL_SECRET = '8d141f11e043c01c163ad2ce10cd09f5'  # 更新為你的 Channel Secret
@@ -12,9 +16,6 @@ LINE_CHANNEL_ACCESS_TOKEN = 'CeDYTudJGcmApZKWQ5aH6ZDF/bQfelCO8UQSNLM/BiLn9QzGX4P
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
-
-# 群組1的 group_id，將其替換為實際群組ID
-GROUP_1_ID = 'your_group_1_id_here'  # 這是群組1的群組 ID
 
 # 儲存報名活動的字典，包含不同群組的報名資料
 events = {}
@@ -35,12 +36,6 @@ def parse_registration(text):
 def handle_message(event):
     message = event.message.text
     group_id = event.source.group_id if event.source.type == 'group' else None
-
-    # 只允許群組1新增活動
-    if group_id != GROUP_1_ID:
-        if message.startswith('新增'):
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="只有群組1可以新增活動！"))
-            return
 
     # 檢查報名活動的指令
     if message.startswith('新增'):
