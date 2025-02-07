@@ -52,83 +52,45 @@ def handle_message(event):
     else:
         group_id = None
 
-    # 只允許群組1新增活動
-    GROUP_1_ID = 'your_group_1_id_here'  # 替換成群組1的實際 group_id
-    if group_id != GROUP_1_ID:
-        if event.message.text.startswith('新增'):
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="只有群組1可以新增活動！"))
-            return
-
-    # 檢查報名活動的指令
-    if message.startswith('新增'):
-        # 處理新增活動指令
-        activity_name = message[2:].strip()
-        if '人' in activity_name:
-            # 提取人數限制
-            match = re.search(r'(\d+)人', activity_name)
-            if match:
-                max_participants = int(match.group(1))
-                activity_name = activity_name.replace(match.group(0), '').strip()
-                if activity_name not in events:
-                    events[activity_name] = {}
-                events[activity_name][group_id] = {
-                    'max_participants': max_participants,
-                    'participants': []
-                }
-        else:
-            if activity_name not in events:
-                events[activity_name] = {}
-            events[activity_name][group_id] = {'max_participants': None, 'participants': []}
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
+    # 群組1 ID
+    GROUP_A_ID = 'Cf1bd502f60c18931d43b68d91fe8abb5'  # 群組1的 group_id (群組A)
+    # 群組2 ID (需替換成真實的群組2 ID)
+    GROUP_B_ID = '其他群組B的group_id'  # 替換為群組2的 group_id (群組B)
     
-    elif message.startswith('截止'):
-        # 處理活動截止指令
-        activity_name = message[2:].strip()
+    if message.startswith('新增'):
+        parts = message.split()
+        activity_name = parts[1]
+        participants_limit = parts[2]  # 例如 10人
+        group_limit = parts[3].upper() if len(parts) > 3 else None  # AJ, BJ 或 None（無限制）
+
+        max_participants = int(re.search(r'\d+', participants_limit).group())
+        
+        if group_limit == 'AJ':
+            events[activity_name] = {'allowed_group': GROUP_A_ID, 'max_participants': max_participants, 'participants': {}}
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，僅允許群組A參加。"))
+        elif group_limit == 'BJ':
+            events[activity_name] = {'allowed_group': GROUP_B_ID, 'max_participants': max_participants, 'participants': {}}
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，僅允許群組B參加。"))
+        else:
+            events[activity_name] = {'allowed_group': None, 'max_participants': max_participants, 'participants': {}}
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，無群組限制。"))
+    
+    elif message.startswith('報名'):
+        activity_name = message[2:].split()[0]
         if activity_name in events:
-            participants_list = []
-            for group in events[activity_name].values():
-                participants_list.extend([f"{i+1}. {p[0]} ({p[1]})" if p[1] else f"{i+1}. {p[0]}" for i, p in enumerate(group['participants'])])
-            participants_list_str = "\n".join(participants_list)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」的報名名單如下：\n{participants_list_str}"))
+            allowed_group = events[activity_name].get('allowed_group')
+            
+            if allowed_group and group_id != allowed_group:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」僅允許指定群組參加！"))
+                return
+
+            participants = parse_registration(message[len(activity_name)+3:].strip())
+            group = events[activity_name]['participants']
+            for participant in participants:
+                group[participant[0]] = participant[1] if len(participant) > 1 else None
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"參加者 {', '.join([p[0] for p in participants])} 已成功報名「{activity_name}」。"))
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
-
-    elif message.startswith('取消'):
-        # 處理取消報名指令
-        parts = message.split()
-        if len(parts) == 3:
-            activity_name = parts[1]
-            participant_name = parts[2]
-            if activity_name in events:
-                for group in events[activity_name].values():
-                    participants = group['participants']
-                    for i, (name, item) in enumerate(participants):
-                        if name == participant_name:
-                            participants.pop(i)
-                            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"參加者 {participant_name} 已成功取消報名「{activity_name}」。"))
-                            return
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"找不到參加者 {participant_name} 在活動 {activity_name} 中。"))
-            else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
-    
-    else:
-        # 檢查報名訊息
-        if message.startswith('報名'):
-            activity_name = message[2:].split()[0]
-            if activity_name in events:
-                participants = parse_registration(message[len(activity_name)+3:].strip())
-                group = events[activity_name].get(group_id)
-                if group:
-                    for participant in participants:
-                        group['participants'].append(participant)
-                        if group['max_participants'] and len(group['participants']) > group['max_participants']:
-                            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"報名已滿，請聯繫負責人。"))
-                            return
-                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"參加者 {', '.join([p[0] for p in participants])} 已成功報名「{activity_name}」。"))
-                else:
-                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="此群組尚未報名此活動。"))
-            else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
 
 # 測試路由：根路徑
 @app.route('/')
