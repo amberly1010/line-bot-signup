@@ -45,12 +45,17 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = event.message.text
-    group_id = event.source.group_id if event.source.type == 'group' else None
-    
+    # 獲取群組 ID
+    if event.source.type == 'group':
+        group_id = event.source.group_id
+        print(f"來自群組的訊息，群組 ID 是: {group_id}")  # 印出 group_id
+    else:
+        group_id = None
+
     # 只允許群組1新增活動
-    GROUP_1_ID = 'your_group_1_id_here'  # 這是群組1的群組 ID
+    GROUP_1_ID = 'your_group_1_id_here'  # 替換成群組1的實際 group_id
     if group_id != GROUP_1_ID:
-        if message.startswith('新增'):
+        if event.message.text.startswith('新增'):
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="只有群組1可以新增活動！"))
             return
 
