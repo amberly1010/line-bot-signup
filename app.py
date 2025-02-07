@@ -121,8 +121,8 @@ def handle_message(event):
         activity_name = message[2:].strip()
         if activity_name in events:
             participants_list = []
-            for group in events[activity_name].values():
-                participants_list.extend([f"{i+1}. {p[0]} ({p[1]})" if p[1] else f"{i+1}. {p[0]}" for i, p in enumerate(group['participants'])])
+            for i, (name, item) in enumerate(events[activity_name]['participants'].items(), start=1):
+                participants_list.append(f"{i}. {name} ({item})" if item else f"{i}. {name}")
             participants_list_str = "\n".join(participants_list)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」的報名名單如下：\n{participants_list_str}\n活動已結束。"))
         else:
