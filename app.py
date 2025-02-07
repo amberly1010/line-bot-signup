@@ -68,7 +68,7 @@ def handle_message(event):
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：新增 活動名稱 人數 AJ/BJ"))
             return
 
-        activity_name = parts[1]
+        activity_name = parts[1].strip()  # 去掉空格，避免名稱錯誤
         participants_limit = parts[2]  # 例如 10人
         group_limit = parts[3].upper() if len(parts) > 3 else None  # AJ, BJ 或 None（無限制）
 
@@ -92,31 +92,8 @@ def handle_message(event):
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
                 return
     
-    elif message.startswith('更新'):
-        parts = message.split()
-
-        if len(parts) < 3:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：更新 活動名稱 新人數"))
-            return
-
-        activity_name = parts[1]
-        new_participants_limit = parts[2]  # 新的人數限制
-
-        if activity_name in events:
-            try:
-                new_max_participants = int(re.search(r'\d+', new_participants_limit).group())
-                events[activity_name]['max_participants'] = new_max_participants
-
-                # 確保名單不會丟失，並且會繼續從之前的報名者開始處理
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已更新人數限制為：{new_max_participants}人。"))
-            except:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
-                return
-        else:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
-
     elif message.startswith('報名'):
-        activity_name = message[2:].split()[0]
+        activity_name = message[2:].split()[0].strip()  # 去掉空格，避免名稱錯誤
         if activity_name in events:
             allowed_group = events[activity_name].get('allowed_group')
             
