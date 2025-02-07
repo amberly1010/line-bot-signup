@@ -128,7 +128,7 @@ def handle_message(event):
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
 
-# 測試路由：根路徑
+# 測試路徑：根路徑
 @app.route('/')
 def home():
     return "LINE Bot is running!"
