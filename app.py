@@ -33,7 +33,6 @@ def callback():
     signature = request.headers["X-Line-Signature"]
     body = request.get_data(as_text=True)
     
-    # 顯示簽名和請求體，方便調試
     print(f"簽名: {signature}")  # 印出簽名
     print(f"請求體: {body}")  # 印出請求的內容
 
@@ -53,9 +52,6 @@ def handle_message(event):
     # 獲取群組 ID
     if event.source.type == 'group':
         group_id = event.source.group_id
-        # 控制是否顯示群組ID
-        # 如果需要顯示群組ID，取消註解以下行：
-        # print(f"來自群組的訊息，群組 ID 是: {group_id}")
     else:
         group_id = None
 
@@ -65,14 +61,24 @@ def handle_message(event):
     GROUP_B_ID = '其他群組B的group_id'  # 替換為群組2的 group_id (群組B)
     
     if message.startswith('新增'):
+        # 嘗試解析新增指令
         parts = message.split()
+        if len(parts) < 3:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：新增 活動名稱 人數 AJ/BJ"))
+            return
+        
         activity_name = parts[1]
         participants_limit = parts[2]  # 例如 10人
         group_limit = parts[3].upper() if len(parts) > 3 else None  # AJ, BJ 或 None（無限制）
 
         # 提取最大人數
-        max_participants = int(re.search(r'\d+', participants_limit).group())
+        try:
+            max_participants = int(re.search(r'\d+', participants_limit).group())
+        except:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
+            return
         
+        # 根據群組限制設置活動
         if group_limit == 'AJ':
             events[activity_name] = {'allowed_group': GROUP_A_ID, 'max_participants': max_participants, 'participants': {}}
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，僅允許群組A參加。"))
