@@ -20,7 +20,7 @@ events = {}
 def parse_registration(text):
     participants = []
     for line in text.splitlines():
-        match = re.match(r"([^\(]+)(?:\((.*?)\))?", line.strip())
+        match = re.match(r"([^\(]+)(?:\((.*?)\))?", line.strip())  # 去掉多餘空格
         if match:
             name = match.group(1).strip()
             item = match.group(2).strip() if match.group(2) else ''
@@ -48,7 +48,7 @@ def callback():
 # 處理來自 LINE 的訊息
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    message = event.message.text
+    message = event.message.text.strip()  # 去掉多餘空格
     # 獲取群組 ID
     if event.source.type == 'group':
         group_id = event.source.group_id
