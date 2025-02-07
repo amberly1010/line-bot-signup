@@ -86,7 +86,7 @@ def handle_message(event):
             # 如果活動不存在，創建新活動
             try:
                 max_participants = int(re.search(r'\d+', participants_limit).group())
-                events[activity_name] = {'allowed_group': group_limit, 'max_participants': max_participants, 'participants': {}}
+                events[activity_name] = {'allowed_group': group_limit, 'max_participants': max_participants, 'participants': []}
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，限制人數：{max_participants}人。"))
             except:
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
@@ -105,8 +105,8 @@ def handle_message(event):
 
             # 檢查重複報名
             for participant in participants:
-                if participant[0] in group:
-                    existing_number = list(group.keys()).index(participant[0]) + 1
+                if participant[0] in [p[0] for p in group]:
+                    existing_number = [p[0] for p in group].index(participant[0]) + 1
                     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"已重複報名 編號{existing_number} {participant[0]}"))
                     return
 
@@ -114,7 +114,7 @@ def handle_message(event):
             for i, participant in enumerate(participants):
                 if len(group) >= events[activity_name]['max_participants']:
                     break
-                group[participant[0]] = participant[1] if len(participant) > 1 else None
+                group.append(participant)
             
             if len(group) >= events[activity_name]['max_participants']:
                 participants_list = [f"{i+1}. {p[0]} ({p[1]})" if p[1] else f"{i+1}. {p[0]}" for i, p in enumerate(group)]
@@ -128,10 +128,11 @@ def handle_message(event):
         activity_name = message[2:].strip()
         if activity_name in events:
             participants_list = []
-            for i, (name, item) in enumerate(events[activity_name]['participants'].items(), start=1):
+            for i, (name, item) in enumerate(events[activity_name]['participants'], start=1):
                 participants_list.append(f"{i}. {name} ({item})" if item else f"{i}. {name}")
             participants_list_str = "\n".join(participants_list)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」的報名名單如下：\n{participants_list_str}\n活動已結束。"))
+            del events[activity_name]  # 活動截止後刪除活動
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
     
@@ -156,34 +157,10 @@ def handle_message(event):
         if activity_name in events:
             group = events[activity_name]['participants']
             if participant_name in group:
-                del group[participant_name]
+                group.remove(participant_name)
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"參加者「{participant_name}」已取消報名活動「{activity_name}」。"))
             else:
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該參加者的報名資料。"))
-        else:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
-
-    # 取消報名（按報名號碼）
-    elif message.startswith('取消號碼'):
-        parts = message.split()
-        if len(parts) < 3:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：取消號碼 活動名稱 報名號碼"))
-            return
-        activity_name = parts[1]
-        try:
-            participant_number = int(parts[2])
-        except ValueError:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="報名號碼必須是數字。"))
-            return
-
-        if activity_name in events:
-            group = events[activity_name]['participants']
-            if 1 <= participant_number <= len(group):
-                participant_name = list(group.keys())[participant_number - 1]
-                del group[participant_name]
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"報名號碼「{participant_number}」對應的參加者「{participant_name}」已取消報名活動「{activity_name}」。"))
-            else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="報名號碼無效。"))
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
 
@@ -192,7 +169,7 @@ def handle_message(event):
         activity_name = message[2:].strip()
         if activity_name in events:
             participants_list = []
-            for i, (name, item) in enumerate(events[activity_name]['participants'].items(), start=1):
+            for i, (name, item) in enumerate(events[activity_name]['participants'], start=1):
                 participants_list.append(f"{i}. {name} ({item})" if item else f"{i}. {name}")
             participants_list_str = "\n".join(participants_list)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」的報名名單如下：\n{participants_list_str}"))
