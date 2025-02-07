@@ -63,6 +63,7 @@ def handle_message(event):
         participants_limit = parts[2]  # 例如 10人
         group_limit = parts[3].upper() if len(parts) > 3 else None  # AJ, BJ 或 None（無限制）
 
+        # 提取最大人數
         max_participants = int(re.search(r'\d+', participants_limit).group())
         
         if group_limit == 'AJ':
@@ -89,6 +90,17 @@ def handle_message(event):
             for participant in participants:
                 group[participant[0]] = participant[1] if len(participant) > 1 else None
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"參加者 {', '.join([p[0] for p in participants])} 已成功報名「{activity_name}」。"))
+        else:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
+
+    elif message.startswith('截止'):
+        activity_name = message[2:].strip()
+        if activity_name in events:
+            participants_list = []
+            for group in events[activity_name].values():
+                participants_list.extend([f"{i+1}. {p[0]} ({p[1]})" if p[1] else f"{i+1}. {p[0]}" for i, p in enumerate(group['participants'])])
+            participants_list_str = "\n".join(participants_list)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」的報名名單如下：\n{participants_list_str}"))
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
 
