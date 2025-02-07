@@ -164,6 +164,30 @@ def handle_message(event):
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
 
+    # 取消報名（按報名號碼）
+    elif message.startswith('取消號碼'):
+        parts = message.split()
+        if len(parts) < 3:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：取消號碼 活動名稱 報名號碼"))
+            return
+        activity_name = parts[1]
+        try:
+            participant_number = int(parts[2])
+        except ValueError:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="報名號碼必須是數字。"))
+            return
+
+        if activity_name in events:
+            group = events[activity_name]['participants']
+            if 1 <= participant_number <= len(group):
+                participant_name = list(group.keys())[participant_number - 1]
+                del group[participant_name]
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"報名號碼「{participant_number}」對應的參加者「{participant_name}」已取消報名活動「{activity_name}」。"))
+            else:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="報名號碼無效。"))
+        else:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
+
     # 列出報名名單
     elif message.startswith('名單'):
         activity_name = message[2:].strip()
