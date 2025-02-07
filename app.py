@@ -62,15 +62,20 @@ def handle_message(event):
     
     if message.startswith('新增'):
         parts = message.split()
-
-        # 確保訊息格式正確
+        
+        # 檢查訊息格式
         if len(parts) < 3:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="指令格式錯誤，請使用：新增 活動名稱 人數 AJ/BJ"))
             return
-        
+
         activity_name = parts[1]
         participants_limit = parts[2]  # 例如 10人
         group_limit = parts[3].upper() if len(parts) > 3 else None  # AJ, BJ 或 None（無限制）
+
+        # 檢查活動名稱是否已存在
+        if activity_name in events:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="該活動名稱已經存在，請選擇其他名稱。"))
+            return
 
         # 提取最大人數
         try:
@@ -82,13 +87,13 @@ def handle_message(event):
         # 根據群組限制設置活動
         if group_limit == 'AJ':
             events[activity_name] = {'allowed_group': GROUP_A_ID, 'max_participants': max_participants, 'participants': {}}
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，僅允許群組A參加。"))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
         elif group_limit == 'BJ':
             events[activity_name] = {'allowed_group': GROUP_B_ID, 'max_participants': max_participants, 'participants': {}}
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，僅允許群組B參加。"))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
         else:
             events[activity_name] = {'allowed_group': None, 'max_participants': max_participants, 'participants': {}}
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增，無群組限制。"))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已新增。"))
     
     elif message.startswith('報名'):
         activity_name = message[2:].split()[0]
@@ -101,9 +106,14 @@ def handle_message(event):
 
             participants = parse_registration(message[len(activity_name)+3:].strip())
             group = events[activity_name]['participants']
-            for participant in participants:
+
+            # 只擷取到最大人數
+            for i, participant in enumerate(participants):
+                if len(group) >= events[activity_name]['max_participants']:
+                    break
                 group[participant[0]] = participant[1] if len(participant) > 1 else None
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"參加者 {', '.join([p[0] for p in participants])} 已成功報名「{activity_name}」。"))
+
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"報名已處理，最多報名 {events[activity_name]['max_participants']} 人。"))
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到該活動。"))
 
