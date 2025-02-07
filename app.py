@@ -74,14 +74,8 @@ def handle_message(event):
 
         # 檢查活動名稱是否已存在
         if activity_name in events:
-            # 如果活動已存在，更新人數限制
-            try:
-                max_participants = int(re.search(r'\d+', participants_limit).group())
-                events[activity_name]['max_participants'] = max_participants
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已存在，已更新人數限制：{max_participants}人。"))
-            except:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="人數格式錯誤，請重新輸入有效人數。"))
-                return
+            # 如果活動已存在，回應「活動已存在」
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」已存在。"))
         else:
             # 如果活動不存在，創建新活動
             try:
