@@ -84,6 +84,19 @@ def handle_message(event):
             if activities[activity_name]["max"] and len(activities[activity_name]["participants"]) >= activities[activity_name]["max"]:
                 reply_text += f"\n報名已達到最大人數，活動 '{activity_name}' 現在已額滿。"
     
+    # 更改報名內容
+    match = re.match(r"^報名更改\n(.+)$", user_message, re.DOTALL)
+    if match:
+        updated_info = match.group(1).strip()
+        for activity_name, data in activities.items():
+            for i, participant in enumerate(data["participants"]):
+                if participant.split("（")[0] in updated_info or f"{i+1}. {participant.split('（')[0]}" in updated_info:
+                    data["participants"][i] = updated_info
+                    reply_text = f"報名內容已更新：\n"
+                    for j, p in enumerate(data["participants"], 1):
+                        reply_text += f"{j}. {p}\n"
+                    break
+    
     # 查詢名單
     match = re.match(r"^名單 (.+)$", user_message)
     if match:
@@ -92,18 +105,6 @@ def handle_message(event):
             reply_text = f"活動 '{activity_name}' 報名名單：\n"
             for i, p in enumerate(activities[activity_name]["participants"], 1):
                 reply_text += f"{i}. {p}\n"
-        else:
-            reply_text = "找不到該活動"
-    
-    # 截止活動
-    match = re.match(r"^截止 (.+)$", user_message)
-    if match:
-        activity_name = match.group(1).strip()
-        if activity_name in activities:
-            reply_text = f"活動 '{activity_name}' 已結束。最終名單如下：\n"
-            for i, p in enumerate(activities[activity_name]["participants"], 1):
-                reply_text += f"{i}. {p}\n"
-            del activities[activity_name]
         else:
             reply_text = "找不到該活動"
     
