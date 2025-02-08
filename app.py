@@ -63,7 +63,7 @@ def handle_message(event):
         if activity_name not in activities:
             reply_text = "活動不存在"
         else:
-            participants_list = [p.strip() for p in participants.split(" ") if p.strip()]
+            participants_list = [p.strip() for p in participants.split("\n") if p.strip()]
             for participant in participants_list:
                 if participant not in activities[activity_name]["participants"]:
                     activities[activity_name]["participants"].append(participant)
