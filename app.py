@@ -50,6 +50,9 @@ def handle_message(event):
         else:
             activities[activity_name] = {"max": max_participants, "participants": [], "group": group_tag}
             reply_text = f"活動 '{activity_name}' 已新增，{'最多 ' + str(max_participants) + ' 人' if max_participants else '無人數限制'}"
+        
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+        return
     
     # 更新活動人數
     match = re.match(r"^更新 (.+?) (\d+人)$", user_message)
@@ -61,6 +64,9 @@ def handle_message(event):
             reply_text = f"活動 '{activity_name}' 已更新，最多 {new_max}"
         else:
             reply_text = "找不到該活動"
+        
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+        return
     
     # 報名活動
     match = re.match(r"^報名 (.+?)\n(.+)$", user_message, re.DOTALL)
@@ -104,4 +110,3 @@ def handle_message(event):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
