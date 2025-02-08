@@ -39,6 +39,7 @@ def handle_message(event):
     match = re.match(r"^新增 (.+?) (\d+人)? ?(AJ|BJ)?$", user_message)
     if match:
         activity_name, max_participants, group_tag = match.groups()
+        activity_name = activity_name.strip()
         max_participants = int(max_participants[:-1]) if max_participants else None
         if activity_name in activities:
             reply_text = "活動已存在"
@@ -50,6 +51,7 @@ def handle_message(event):
     match = re.match(r"^更新 (.+?) (\d+人)$", user_message)
     if match:
         activity_name, new_max = match.groups()
+        activity_name = activity_name.strip()
         if activity_name in activities:
             activities[activity_name]["max"] = int(new_max[:-1])
             reply_text = f"活動 '{activity_name}' 已更新，最多 {new_max}"
@@ -60,8 +62,9 @@ def handle_message(event):
     match = re.match(r"^報名 (.+?)\n(.+)$", user_message, re.DOTALL)
     if match:
         activity_name, participants = match.groups()
+        activity_name = activity_name.strip()
         if activity_name not in activities:
-            reply_text = "活動不存在"
+            reply_text = f"找不到活動 '{activity_name}'"
         else:
             participants_list = [p.strip() for p in participants.split("\n") if p.strip()]
             added_count = 0
@@ -73,7 +76,7 @@ def handle_message(event):
                     added_count += 1
             
             if added_count > 0:
-                reply_text = "報名成功！目前參加名單：\n"
+                reply_text = f"報名成功！活動 '{activity_name}' 目前參加名單：\n"
                 for i, p in enumerate(activities[activity_name]["participants"], 1):
                     reply_text += f"{i}. {p}\n"
             
@@ -83,7 +86,7 @@ def handle_message(event):
     # 查詢名單
     match = re.match(r"^名單 (.+)$", user_message)
     if match:
-        activity_name = match.group(1)
+        activity_name = match.group(1).strip()
         if activity_name in activities:
             reply_text = f"活動 '{activity_name}' 報名名單：\n"
             for i, p in enumerate(activities[activity_name]["participants"], 1):
@@ -94,7 +97,7 @@ def handle_message(event):
     # 截止活動
     match = re.match(r"^截止 (.+)$", user_message)
     if match:
-        activity_name = match.group(1)
+        activity_name = match.group(1).strip()
         if activity_name in activities:
             reply_text = f"活動 '{activity_name}' 已結束。最終名單如下：\n"
             for i, p in enumerate(activities[activity_name]["participants"], 1):
