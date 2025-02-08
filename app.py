@@ -41,8 +41,9 @@ def handle_message(event):
         activity_name, max_participants, group_tag = match.groups()
         activity_name = activity_name.strip()
         max_participants = int(max_participants[:-1]) if max_participants else None
+        
         if activity_name in activities:
-            reply_text = "活動已存在"
+            reply_text = f"活動 '{activity_name}' 已存在"
         else:
             activities[activity_name] = {"max": max_participants, "participants": [], "group": group_tag}
             reply_text = f"活動 '{activity_name}' 已新增，{'最多 ' + str(max_participants) + ' 人' if max_participants else '無人數限制'}"
