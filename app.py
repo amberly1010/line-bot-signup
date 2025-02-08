@@ -16,6 +16,7 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # 活動儲存結構
 activities = {}
+GROUP_A_ID = "Cf1bd502f60c18931d43b68d91fe8abb5"
 
 @app.route("/callback", methods=["POST"])
 def callback():
