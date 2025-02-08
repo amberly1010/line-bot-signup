@@ -51,10 +51,6 @@ def handle_message(event):
             activities[activity_name] = {"max": max_participants, "participants": [], "group": group_tag}
             reply_text = f"活動 '{activity_name}' 已新增，{'最多 ' + str(max_participants) + ' 人' if max_participants else '無人數限制'}"
     
-    # 確保活動不會重複新增
-    if "活動 '{activity_name}' 已新增" in reply_text:
-        return
-    
     # 更新活動人數
     match = re.match(r"^更新 (.+?) (\d+人)$", user_message)
     if match:
@@ -108,3 +104,4 @@ def handle_message(event):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
