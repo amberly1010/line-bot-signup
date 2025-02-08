@@ -16,15 +16,13 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 # 儲存報名活動的字典，包含不同群組的報名資料
 events = {}
 
-# 解析報名訊息
+# 解析報名訊息，支持換行或空格分隔參加者
 def parse_registration(text):
     participants = []
+    # 使用空格和換行分隔，解析參加者
     for line in text.splitlines():
-        match = re.match(r"([^\(]+)(?:\((.*?)\))?", line.strip())  # 去掉多餘空格
-        if match:
-            name = match.group(1).strip()
-            item = match.group(2).strip() if match.group(2) else ''
-            participants.append((name, item))
+        for name in line.split():
+            participants.append((name.strip(), ''))  # 沒有報名事項
     return participants
 
 # 設置 callback 路由來處理來自 LINE 的 webhook 請求
@@ -134,7 +132,7 @@ def handle_message(event):
                 group.append(participant)
             
             if len(group) >= events[activity_name]['max_participants']:
-                participants_list = [f"{i+1}. {p[0]} ({p[1]})" if p[1] else f"{i+1}. {p[0]}" for i, p in enumerate(group)]
+                participants_list = [f"{i+1}. {p[0]}" for i, p in enumerate(group)]  # 格式化名單
                 participants_list_str = "\n".join(participants_list)
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"報名已達到最大人數。截止名單如下：\n{participants_list_str}"))
             
@@ -146,7 +144,7 @@ def handle_message(event):
         if activity_name in events:
             participants_list = []
             for i, (name, item) in enumerate(events[activity_name]['participants'], start=1):
-                participants_list.append(f"{i}. {name} ({item})" if item else f"{i}. {name}")
+                participants_list.append(f"{i}. {name}" if not item else f"{i}. {name} ({item})")
             participants_list_str = "\n".join(participants_list)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"活動「{activity_name}」的報名名單如下：\n{participants_list_str}\n活動已結束。"))
             del events[activity_name]  # 活動截止後刪除活動
