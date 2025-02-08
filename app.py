@@ -18,6 +18,9 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 activities = {}
 GROUP_A_ID = "Cf1bd502f60c18931d43b68d91fe8abb5"
 
+def normalize_activity_name(name):
+    return name.strip().replace(" ", "")
+
 @app.route("/callback", methods=["POST"])
 def callback():
     signature = request.headers["X-Line-Signature"]
@@ -39,7 +42,7 @@ def handle_message(event):
     match = re.match(r"^新增 (.+?) (\d+人)? ?(AJ|BJ)?$", user_message)
     if match:
         activity_name, max_participants, group_tag = match.groups()
-        activity_name = activity_name.strip()
+        activity_name = normalize_activity_name(activity_name)
         max_participants = int(max_participants[:-1]) if max_participants else None
         
         if activity_name in activities:
@@ -52,7 +55,7 @@ def handle_message(event):
     match = re.match(r"^更新 (.+?) (\d+人)$", user_message)
     if match:
         activity_name, new_max = match.groups()
-        activity_name = activity_name.strip()
+        activity_name = normalize_activity_name(activity_name)
         if activity_name in activities:
             activities[activity_name]["max"] = int(new_max[:-1])
             reply_text = f"活動 '{activity_name}' 已更新，最多 {new_max}"
@@ -63,7 +66,7 @@ def handle_message(event):
     match = re.match(r"^報名 (.+?)\n(.+)$", user_message, re.DOTALL)
     if match:
         activity_name, participants = match.groups()
-        activity_name = activity_name.strip()
+        activity_name = normalize_activity_name(activity_name)
         if activity_name not in activities:
             reply_text = f"找不到活動 '{activity_name}'"
         else:
@@ -84,23 +87,10 @@ def handle_message(event):
             if activities[activity_name]["max"] and len(activities[activity_name]["participants"]) >= activities[activity_name]["max"]:
                 reply_text += f"\n報名已達到最大人數，活動 '{activity_name}' 現在已額滿。"
     
-    # 更改報名內容
-    match = re.match(r"^報名更改\n(.+)$", user_message, re.DOTALL)
-    if match:
-        updated_info = match.group(1).strip()
-        for activity_name, data in activities.items():
-            for i, participant in enumerate(data["participants"]):
-                if participant.split("（")[0] in updated_info or f"{i+1}. {participant.split('（')[0]}" in updated_info:
-                    data["participants"][i] = updated_info
-                    reply_text = f"報名內容已更新：\n"
-                    for j, p in enumerate(data["participants"], 1):
-                        reply_text += f"{j}. {p}\n"
-                    break
-    
     # 查詢名單
     match = re.match(r"^名單 (.+)$", user_message)
     if match:
-        activity_name = match.group(1).strip()
+        activity_name = normalize_activity_name(match.group(1))
         if activity_name in activities:
             reply_text = f"活動 '{activity_name}' 報名名單：\n"
             for i, p in enumerate(activities[activity_name]["participants"], 1):
